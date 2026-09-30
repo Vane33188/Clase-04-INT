@@ -21,7 +21,7 @@ Adjunto Link [[INDICADORES]()]
 
 **Web publicada:** https://yerba-matenetlify.netlify.app/
 **Código GitHub:**  https://github.com/Vane33188/yerba-misiones
-**Drive con Word y Excel:** [https://drive.google.com/drive/folders/1kZ5DI3jeKd4MuwXDYFdSDTncG4WUi5BL]
+**Drive con Word y Excel:** https://drive.google.com/drive/folders/1kZ5DI3jeKd4MuwXDYFdSDTncG4WUi5BL
 
 **1. Perplexity (investigación yerba mate):** [tu link]
 **2. Claude - Rol Experto Comercio Exterior:** [pega acá el 1er link de tu captura]
