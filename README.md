@@ -20,7 +20,7 @@ Adjunto Link [[INDICADORES]()]
 ### Evidencia de IA - Entrega INDICADORES
 
 **Web publicada:** https://yerba-matenetlify.netlify.app/
-**Código GitHub:** https://github.com/vane33188/yerba-misiones
+**Código GitHub:**  https://github.com/Vane33188/yerba-misiones
 **Drive con Word y Excel:** [pega acá tu link de Drive]
 
 **1. Perplexity (investigación yerba mate):** [tu link]
