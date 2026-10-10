@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Panel Financiero — TechDistribución 2022</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#11141a; --panel:#181c24; --panel2:#1e232c; --line:#2a303c;
+    --ink:#eef0f3; --ink-dim:#9aa3b2; --ink-faint:#666f80;
+    --amber:#e2a63a; --amber-dim:#b8842a; --teal:#4fb3a6; --coral:#d9705f; --violet:#8b8fd8;
+    --pos:#4fb3a6; --neg:#d9705f;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-padding-top:env(safe-area-inset-top,0px);}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:'Inter',sans-serif; font-size:15px; line-height:1.55;
+    padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px; margin:0 auto; padding:0 28px;}
+  header.top{
+    border-bottom:1px solid var(--line); padding:38px 0 30px;
+    background:
+      radial-gradient(900px 260px at 15% 0%, rgba(226,166,58,.08), transparent 60%),
+      radial-gradient(700px 220px at 85% 0%, rgba(79,179,166,.07), transparent 60%);
+  }
+  .eyebrow{font-size:12.5px; color:var(--amber); font-weight:600; letter-spacing:.02em;}
+  h1{font-family:'Fraunces',serif; font-weight:600; font-size:clamp(28px,4vw,42px); letter-spacing:-.01em; margin:8px 0 10px; max-width:16ch;}
+  .sub{color:var(--ink-dim); max-width:62ch; font-size:15.5px;}
+  .period{color:var(--ink-faint); font-size:13px; margin-top:14px;}
+
+  section{padding:44px 0; border-bottom:1px solid var(--line);}
+  section:last-of-type{border-bottom:none;}
+  .sec-head{display:flex; justify-content:space-between; align-items:flex-end; gap:24px; margin-bottom:22px; flex-wrap:wrap;}
+  h2{font-family:'Fraunces',serif; font-weight:600; font-size:22px;}
+  .why{
+    background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--amber);
+    border-radius:4px; padding:14px 18px; margin-top:18px; color:var(--ink-dim); font-size:13.8px; max-width:78ch;
+  }
+  .why b{color:var(--ink); font-weight:600;}
+
+  .kpi-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-top:28px;}
+  .kpi{background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:20px 18px;}
+  .kpi .label{font-size:12.5px; color:var(--ink-faint); margin-bottom:10px;}
+  .kpi .value{font-size:26px; font-weight:700; font-variant-numeric:tabular-nums; letter-spacing:-.02em;}
+  .kpi .note{font-size:12.5px; color:var(--ink-dim); margin-top:6px;}
+  .kpi.accent{border-color:var(--amber-dim); background:linear-gradient(160deg,rgba(226,166,58,.10),var(--panel) 60%);}
+
+  .grid2{display:grid; grid-template-columns:1.5fr 1fr; gap:20px; margin-top:8px; align-items:stretch;}
+  .grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:8px;}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:22px;}
+  .card h3{font-size:14px; font-weight:600; margin-bottom:2px;}
+  .card .hint{font-size:12.5px; color:var(--ink-faint); margin-bottom:16px;}
+  .chart-box{position:relative; height:280px;}
+  .chart-box.tall{height:320px;}
+  .chart-box.short{height:220px;}
+
+  table{width:100%; border-collapse:collapse; font-size:13.6px;}
+  th{text-align:left; color:var(--ink-faint); font-weight:500; font-size:12px; padding:8px 10px; border-bottom:1px solid var(--line);}
+  td{padding:9px 10px; border-bottom:1px solid var(--line); font-variant-numeric:tabular-nums;}
+  tr:last-child td{border-bottom:none;}
+  td.num, th.num{text-align:right;}
+  .bar-cell{display:flex; align-items:center; gap:8px;}
+  .bar-track{flex:1; height:6px; background:var(--panel2); border-radius:3px; overflow:hidden; min-width:60px;}
+  .bar-fill{height:100%; background:var(--amber); border-radius:3px;}
+  .tag{display:inline-block; padding:2px 8px; border-radius:20px; font-size:11.5px; font-weight:600;}
+  .tag.pos{background:rgba(79,179,166,.15); color:var(--teal);}
+  .tag.warn{background:rgba(217,112,95,.15); color:var(--coral);}
+  .tag.neu{background:rgba(139,143,216,.15); color:var(--violet);}
+
+  .risk-list{display:flex; flex-direction:column; gap:14px;}
+  .risk-item{display:flex; gap:12px; padding:14px; background:var(--panel2); border-radius:6px; border:1px solid var(--line);}
+  .risk-item .dot{width:8px; height:8px; border-radius:50%; margin-top:6px; flex-shrink:0;}
+  .risk-item .dot.high{background:var(--coral);}
+  .risk-item .dot.mid{background:var(--amber);}
+  .risk-item .dot.low{background:var(--teal);}
+  .risk-item p{font-size:13.6px; color:var(--ink-dim);}
+  .risk-item strong{color:var(--ink); display:block; margin-bottom:3px; font-size:14px;}
+
+  footer{padding:34px 0 60px; color:var(--ink-faint); font-size:12.5px;}
+  footer a{color:var(--ink-dim);}
+
+  @media (max-width:900px){
+    .kpi-grid{grid-template-columns:repeat(2,1fr);}
+    .grid2, .grid3{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="eyebrow">Panel financiero — comercio de tecnología</div>
+    <h1>Ventas, márgenes y proyección 2022</h1>
+    <p class="sub">Lectura financiera de 1.901 movimientos de venta: qué se vendió, a quién, con qué margen, y hacia dónde va la tendencia si nada cambia.</p>
+    <p class="period">Periodo cubierto: enero – 14 de diciembre de 2022 · diciembre está incompleto, se usa como referencia parcial, no para la tendencia.</p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="kpi-grid" id="kpiGrid"></div>
+    <div class="why">
+      <b>Por qué importa:</b> estos seis números son el resumen ejecutivo. El margen bruto (15,7%) es más importante que la venta total: indica cuánto queda después del costo de mercadería antes de gastos operativos. Un ticket promedio de más de 50 millones y solo 4 clientes activos son la primera señal de un negocio B2B muy concentrado — se desarrolla más abajo.
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <h2>Tendencia mensual y proyección a 3 meses</h2>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Ventas e ingresos (margen) por mes, con forecast Ene–Mar 2023</h3>
+      <p class="hint">Regresión lineal sobre los 11 meses completos (Ene–Nov). Las barras punteadas son la proyección, no datos reales.</p>
+      <div class="chart-box tall"><canvas id="chartTendencia"></canvas></div>
+    </div>
+    <div class="why">
+      <b>Por qué importa:</b> la pendiente de la regresión es negativa: las ventas mensuales vienen cayendo en promedio un <span id="pendienteTxt">–1,4%</span> por mes desde el pico de mayo. Si el patrón continúa, el primer trimestre de 2023 arrancaría por debajo de los $8.000 millones mensuales. Esto no es una certeza — es una alerta temprana para revisar qué cambió a partir de junio (estacionalidad, pérdida de un cliente, rotación de vendedores) antes de que se confirme en los próximos cierres.
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head"><h2>Qué se vende y con qué rentabilidad</h2></div>
+    <div class="grid2">
+      <div class="card">
+        <h3>Ventas y margen por categoría</h3>
+        <p class="hint">Portátiles domina en volumen y también en margen relativo.</p>
+        <div class="chart-box"><canvas id="chartTipo"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Margen bruto por marca</h3>
+        <p class="hint">% de ingreso que queda tras el costo, por marca.</p>
+        <div id="tablaMarca"></div>
+      </div>
+    </div>
+    <div class="why">
+      <b>Por qué importa:</b> Apple genera más facturación que ninguna otra marca, pero su margen (14,2%) es inferior al de Lenovo (27,6%) o Acer (24,4%). Vender más "marca fuerte" no es lo mismo que ganar más — es información clave no pedida explícitamente pero decisiva para decidir en qué línea reforzar el stock o negociar mejores costos con el proveedor.
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head"><h2>Top de productos</h2></div>
+    <div class="card">
+      <h3>8 productos que más facturan</h3>
+      <p class="hint">Ordenados por venta total; la barra muestra participación relativa dentro del top.</p>
+      <div id="tablaProductos"></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head"><h2>Concentración de clientes y forma de pago</h2></div>
+    <div class="grid2">
+      <div class="card">
+        <h3>Participación por cliente</h3>
+        <p class="hint">4 cuentas explican el 100% de la facturación.</p>
+        <div class="chart-box"><canvas id="chartClientes"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Contado vs. crédito</h3>
+        <p class="hint">Proporción de ventas financiadas al cliente.</p>
+        <div class="chart-box short"><canvas id="chartPago"></canvas></div>
+        <p style="margin-top:14px; font-size:13px; color:var(--ink-dim);">El <b style="color:var(--ink)">62%</b> de las ventas se otorga a crédito. Sin plazos de cobro en la base, no se puede calcular el período medio de cobranza, pero la proporción ya es un indicador de exposición de caja a seguir.</p>
+      </div>
+    </div>
+    <div class="why">
+      <b>Por qué importa (no solicitado, pero clave):</b> Asociados LTDA (Bogotá) concentra el 42% de las ventas. Esto es riesgo de concentración de cartera: perder ese único cliente equivale a perder casi la mitad del negocio de un año. Junto con el alto porcentaje a crédito, la posición de caja de la empresa depende fuertemente de la salud financiera de cuatro empresas, no de un mercado diversificado.
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head"><h2>Desempeño del equipo de ventas</h2></div>
+    <div class="card">
+      <h3>Facturación y margen generado por vendedor</h3>
+      <div id="tablaEmpleados"></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head"><h2>Ratios e indicadores clave</h2></div>
+    <div class="grid3" id="ratiosGrid"></div>
+    <div class="why">
+      <b>Por qué importa:</b> estos ratios convierten los totales en señales comparables mes a mes. Un margen bruto que se sostiene cerca del 15-16% es saludable para distribución de tecnología (márgenes bajos por volumen), pero exige que el ticket promedio y la rotación de inventario no caigan, porque el negocio no tiene margen de maniobra en precio.
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head"><h2>Lectura de riesgo y recomendaciones</h2></div>
+    <div class="risk-list">
+      <div class="risk-item"><div class="dot high"></div><div><strong>Concentración de cartera (alto)</strong><p>4 clientes, uno con 42% de participación. Diversificar la base de clientes reduce el impacto de perder una sola cuenta.</p></div></div>
+      <div class="risk-item"><div class="dot mid"></div><div><strong>Tendencia de ventas a la baja (medio)</strong><p>Caída sostenida desde mayo. Revisar si es estacional (estudiar 2023 para confirmar) o estructural (pérdida de competitividad frente a la competencia).</p></div></div>
+      <div class="risk-item"><div class="dot mid"></div><div><strong>Exposición a crédito (medio)</strong><p>62% de las ventas a crédito sin datos de plazo. Incorporar fecha de vencimiento y cobro en la base permitiría calcular el período medio de cobranza real.</p></div></div>
+      <div class="risk-item"><div class="dot low"></div><div><strong>Mezcla de marcas por margen (oportunidad)</strong><p>Lenovo y Acer dejan más margen relativo que Apple. Impulsar su venta cruzada mejora la rentabilidad sin necesidad de vender más volumen.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    Panel generado a partir de la base de datos de ventas provista (1.901 registros, ene–dic 2022). Cifras en pesos. El archivo de trabajo detallado con fórmulas está disponible en el Excel adjunto.
+  </div>
+</footer>
+
+<script id="data-json" type="application/json">{"kpi": {"ventas_total": 103805408563, "ingresos_total": 16259748803, "margen_pct": 15.7, "ticket_prom": 54605686, "n_trans": 1901, "clientes": 4, "productos": 21}, "meses": ["2022-01", "2022-02", "2022-03", "2022-04", "2022-05", "2022-06", "2022-07", "2022-08", "2022-09", "2022-10", "2022-11", "2022-12"], "ventas_mes": [9738965526, 7667494170, 9139607974, 11045631654, 13800339040, 8076808966, 5985626746, 7802299454, 7381244630, 8688965074, 9978997204, 4499428125], "ingresos_mes": [1548066166, 1210083850, 1313201894, 1813784534, 2252783120, 1205619366, 943434346, 1159634974, 1198338710, 1386024914, 1524078484, 704698445], "forecast_meses": ["2023-01", "2023-02", "2023-03"], "forecast_ventas": [8248338691, 8118425739, 7988512787], "forecast_ingresos": [1284363945, 1262742021, 1241120098], "tendencia_ventas_pct_mensual": -1.44, "tipo": [{"Tipo": "Celuar", "Ventas": 34276331694, "Ingresos": 4667057934, "N": 864, "Margen": 13.6}, {"Tipo": "Pc Mesa", "Ventas": 22479876442, "Ingresos": 2743606442, "N": 376, "Margen": 12.2}, {"Tipo": "Portátil", "Ventas": 47049200427, "Ingresos": 8849084427, "N": 661, "Margen": 18.8}], "marca": [{"Marca": "Apple", "Ventas": 27792445162, "Ingresos": 3956089162, "Margen": 14.2}, {"Marca": "Asus", "Ventas": 17323637504, "Ingresos": 2181045504, "Margen": 12.6}, {"Marca": "Lenovo", "Ventas": 16655742633, "Ingresos": 4589842633, "Margen": 27.6}, {"Marca": "Xiaomi", "Ventas": 13079287232, "Ingresos": 1372987232, "Margen": 10.5}, {"Marca": "Intel", "Ventas": 9280914346, "Ingresos": 895984346, "Margen": 9.7}, {"Marca": "Samsum", "Ventas": 8142409784, "Ingresos": 920576024, "Margen": 11.3}, {"Marca": "Janus", "Ventas": 4392824184, "Ingresos": 982076184, "Margen": 22.4}, {"Marca": "Acer", "Ventas": 4194947718, "Ingresos": 1021547718, "Margen": 24.4}, {"Marca": "Vivo", "Ventas": 2943200000, "Ingresos": 339600000, "Margen": 11.5}], "top_productos": [{"Producto": "Lenovo 14IGL7", "Ventas": 9897540996, "Ingresos": 2071540996, "Cant": 1204}, {"Producto": "MacBook Pro", "Ventas": 9468071808, "Ingresos": 757031808, "Cant": 1664}, {"Producto": "ASUS AIO V", "Ventas": 8806137912, "Ingresos": 865545912, "Cant": 1782}, {"Producto": "Gaming F15", "Ventas": 8517499592, "Ingresos": 1315499592, "Cant": 1108}, {"Producto": "15 Pulgadas Ip1 Athlon", "Ventas": 6585570108, "Ingresos": 2482170108, "Cant": 1954}, {"Producto": "Xiaomi redmi 8", "Ventas": 6367914400, "Ingresos": 849914400, "Cant": 1780}, {"Producto": "MacBook Air", "Ventas": 6033325368, "Ingresos": 857349368, "Cant": 1256}, {"Producto": "Intel Corei7", "Ventas": 5161483346, "Ingresos": 281263346, "Cant": 998}], "clientes": [{"Cliente": "Asociados LTDA", "Ventas": 43739616368, "Ingresos": 6839779488, "N": 804, "pct": 42.1}, {"Cliente": "Smart S.A.S", "Ventas": 20886432096, "Ingresos": 3176917936, "N": 378, "pct": 20.1}, {"Cliente": "FullStark", "Ventas": 19664001853, "Ingresos": 3140020893, "N": 353, "pct": 18.9}, {"Cliente": "Distribuidora Oriente", "Ventas": 19515358246, "Ingresos": 3103030486, "N": 366, "pct": 18.8}], "pago": [{"Pago": "Contado", "Ventas": 19664001853, "N": 353}, {"Pago": "Crédito", "Ventas": 84141406710, "N": 1548}], "empleados": [{"Empleado": "Diego", "Ventas": 12468916035, "Ingresos": 1936963075, "N": 205, "Margen": 15.5}, {"Empleado": "Matias", "Ventas": 11001412676, "Ingresos": 1630615156, "N": 202, "Margen": 14.8}, {"Empleado": "Liliana", "Ventas": 10813613563, "Ingresos": 1643451803, "N": 197, "Margen": 15.2}, {"Empleado": "Alejandra", "Ventas": 10746481941, "Ingresos": 1698004461, "N": 182, "Margen": 15.8}, {"Empleado": "Martha", "Ventas": 10489264790, "Ingresos": 1598975230, "N": 211, "Margen": 15.2}, {"Empleado": "Juan", "Ventas": 10240320591, "Ingresos": 1671430991, "N": 184, "Margen": 16.3}, {"Empleado": "Hernan", "Ventas": 9927646495, "Ingresos": 1579910775, "N": 183, "Margen": 15.9}, {"Empleado": "Daniela", "Ventas": 9457100593, "Ingresos": 1451827593, "N": 187, "Margen": 15.4}, {"Empleado": "Lina", "Ventas": 9441530676, "Ingresos": 1567326476, "N": 182, "Margen": 16.6}, {"Empleado": "Paola", "Ventas": 9219121203, "Ingresos": 1481243243, "N": 168, "Margen": 16.1}], "area": [{"Area": "Compras", "Ventas": 22396562530}, {"Area": "Ventas", "Ventas": 19681851267}, {"Area": "Almacen", "Ventas": 11001412676}, {"Area": "Gerencia", "Ventas": 10813613563}, {"Area": "Control de calidad", "Ventas": 10746481941}, {"Area": "Administracion", "Ventas": 10489264790}, {"Area": "Despachos", "Ventas": 9457100593}, {"Area": "Logística", "Ventas": 9219121203}]}</script>
+<script>
+const D = JSON.parse(document.getElementById('data-json').textContent);
+const fmtM = n => (n/1e6).toLocaleString('es-CO',{maximumFractionDigits:0}) + 'M';
+const fmt0 = n => Math.round(n).toLocaleString('es-CO');
+const fmtPct = n => n.toLocaleString('es-CO',{maximumFractionDigits:1}) + '%';
+
+Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.color = '#9aa3b2';
+Chart.defaults.borderColor = '#2a303c';
+
+// KPIs
+const kpiGrid = document.getElementById('kpiGrid');
+const kpis = [
+  {l:'Ventas totales', v:'$'+fmtM(D.kpi.ventas_total), n:D.kpi.n_trans+' transacciones', accent:true},
+  {l:'Margen bruto', v:'$'+fmtM(D.kpi.ingresos_total), n:fmtPct(D.kpi.margen_pct)+' sobre ventas'},
+  {l:'Ticket promedio', v:'$'+fmtM(D.kpi.ticket_prom), n:'por venta'},
+  {l:'Clientes activos', v:D.kpi.clientes, n:D.kpi.productos+' productos en catálogo'},
+];
+kpiGrid.innerHTML = kpis.map(k=>`<div class="kpi ${k.accent?'accent':''}"><div class="label">${k.l}</div><div class="value">${k.v}</div><div class="note">${k.n}</div></div>`).join('');
+
+document.getElementById('pendienteTxt').textContent = fmtPct(D.tendencia_ventas_pct_mensual);
+
+// Tablas y ratios: no dependen de Chart.js, se pintan siempre.
+// Tabla marca
+const maxMargen = Math.max(...D.marca.map(m=>m.Margen));
+document.getElementById('tablaMarca').innerHTML = `<table><thead><tr><th>Marca</th><th class="num">Ventas</th><th class="num">Margen</th></tr></thead><tbody>
+${D.marca.map(m=>`<tr><td>${m.Marca}</td><td class="num">$${fmtM(m.Ventas)}</td><td class="num"><div class="bar-cell" style="justify-content:flex-end"><span>${fmtPct(m.Margen)}</span><div class="bar-track" style="max-width:70px"><div class="bar-fill" style="width:${m.Margen/maxMargen*100}%"></div></div></div></td></tr>`).join('')}
+</tbody></table>`;
+
+// Tabla productos
+const maxProd = Math.max(...D.top_productos.map(p=>p.Ventas));
+document.getElementById('tablaProductos').innerHTML = `<table><thead><tr><th>Producto</th><th class="num">Unidades</th><th class="num">Ventas</th><th>Participación</th></tr></thead><tbody>
+${D.top_productos.map(p=>`<tr><td>${p.Producto}</td><td class="num">${fmt0(p.Cant)}</td><td class="num">$${fmtM(p.Ventas)}</td><td><div class="bar-cell"><div class="bar-track"><div class="bar-fill" style="width:${p.Ventas/maxProd*100}%"></div></div></div></td></tr>`).join('')}
+</tbody></table>`;
+
+// Tabla empleados
+const maxEmp = Math.max(...D.empleados.map(e=>e.Ventas));
+document.getElementById('tablaEmpleados').innerHTML = `<table><thead><tr><th>Vendedor</th><th class="num">Ventas</th><th class="num">Margen generado</th><th class="num">Nº ventas</th><th>Participación</th></tr></thead><tbody>
+${D.empleados.map(e=>`<tr><td>${e.Empleado}</td><td class="num">$${fmtM(e.Ventas)}</td><td class="num">$${fmtM(e.Ingresos)}</td><td class="num">${e.N}</td><td><div class="bar-cell"><div class="bar-track"><div class="bar-fill" style="width:${e.Ventas/maxEmp*100}%"></div></div></div></td></tr>`).join('')}
+</tbody></table>`;
+
+// Ratios
+const ventasTotal = D.kpi.ventas_total, ingresosTotal = D.kpi.ingresos_total;
+const costoTotal = ventasTotal - ingresosTotal;
+const rotacion = (ventasTotal/costoTotal).toFixed(2);
+const topClientePct = Math.max(...D.clientes.map(c=>c.pct));
+const ratios = [
+  {t:'Margen bruto sobre ventas', v:fmtPct(D.kpi.margen_pct), d:'Ingresos ÷ Ventas. Qué porción de cada peso vendido queda antes de gastos operativos.'},
+  {t:'Ratio de rotación (Ventas/Costo)', v:rotacion+'x', d:'Por cada peso de costo de mercadería, cuánto se factura. Más alto es más eficiente.'},
+  {t:'Ticket promedio', v:'$'+fmtM(D.kpi.ticket_prom), d:'Venta total ÷ número de transacciones.'},
+  {t:'Concentración top cliente', v:fmtPct(topClientePct), d:'Participación del cliente más grande sobre la venta total. Indicador de riesgo de cartera.'},
+  {t:'Participación a crédito', v:fmtPct(D.pago.find(p=>p.Pago==='Crédito').Ventas/ventasTotal*100), d:'Proporción de ventas financiadas. Expone la dependencia de la caja al cobro futuro.'},
+  {t:'Tendencia mensual de ventas', v:fmtPct(D.tendencia_ventas_pct_mensual), d:'Pendiente de la regresión lineal Ene–Nov como % del promedio mensual.'},
+];
+document.getElementById('ratiosGrid').innerHTML = ratios.map(r=>`<div class="card"><h3>${r.t}</h3><div class="value" style="font-size:24px;font-weight:700;margin:8px 0;">${r.v}</div><p class="hint" style="margin-bottom:0">${r.d}</p></div>`).join('');
+
+// Gráficos (Chart.js). Envueltos en función propia: si el CDN no cargó a tiempo
+// se reintenta un par de veces antes de mostrar un aviso, y un fallo en un
+// gráfico no bloquea a los demás.
+function pintarGraficos(){
+  if (typeof Chart === 'undefined'){
+    if (pintarGraficos.intentos === undefined) pintarGraficos.intentos = 0;
+    if (pintarGraficos.intentos < 20){
+      pintarGraficos.intentos++;
+      return setTimeout(pintarGraficos, 250);
+    }
+    document.querySelectorAll('.chart-box').forEach(el=>{
+      el.innerHTML = '<p style="color:var(--ink-faint);font-size:12.5px;padding:12px 0">No se pudo cargar la librería de gráficos (Chart.js) desde el CDN. Verificá la conexión a internet o que cdnjs.cloudflare.com no esté bloqueado.</p>';
+    });
+    return;
+  }
+
+  const mesesLbl = D.meses.map(m=>m.slice(5)+'/'+m.slice(2,4));
+  const foreLbl = D.forecast_meses.map(m=>m.slice(5)+'/'+m.slice(2,4));
+
+  const intentar = (fn) => { try { fn(); } catch(e){ console.error('Error al pintar gráfico:', e); } };
+
+  intentar(()=> new Chart(document.getElementById('chartTendencia'), {
+    type:'line',
+    data:{
+      labels:[...mesesLbl, ...foreLbl],
+      datasets:[
+        {label:'Ventas', data:[...D.ventas_mes, ...Array(3).fill(null)], borderColor:'#e2a63a', backgroundColor:'rgba(226,166,58,.1)', tension:.3, fill:true, pointRadius:3},
+        {label:'Ventas (proyección)', data:[...Array(D.ventas_mes.length-1).fill(null), D.ventas_mes[D.ventas_mes.length-1], ...D.forecast_ventas], borderColor:'#e2a63a', borderDash:[5,4], pointRadius:2, fill:false},
+        {label:'Margen', data:[...D.ingresos_mes, ...Array(3).fill(null)], borderColor:'#4fb3a6', backgroundColor:'rgba(79,179,166,.08)', tension:.3, fill:true, pointRadius:3},
+        {label:'Margen (proyección)', data:[...Array(D.ingresos_mes.length-1).fill(null), D.ingresos_mes[D.ingresos_mes.length-1], ...D.forecast_ingresos], borderColor:'#4fb3a6', borderDash:[5,4], pointRadius:2, fill:false},
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{labels:{boxWidth:12}, position:'top'}},
+      scales:{ y:{ticks:{callback:v=>'$'+fmtM(v)}, grid:{color:'#232833'}}, x:{grid:{display:false}} }
+    }
+  }));
+
+  intentar(()=> new Chart(document.getElementById('chartTipo'), {
+    type:'bar',
+    data:{
+      labels: D.tipo.map(t=>t.Tipo),
+      datasets:[
+        {label:'Ventas', data: D.tipo.map(t=>t.Ventas), backgroundColor:'#e2a63a', borderRadius:4},
+        {label:'Margen', data: D.tipo.map(t=>t.Ingresos), backgroundColor:'#4fb3a6', borderRadius:4},
+      ]
+    },
+    options:{responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{labels:{boxWidth:12}}},
+      scales:{ y:{ticks:{callback:v=>'$'+fmtM(v)}, grid:{color:'#232833'}}, x:{grid:{display:false}} }
+    }
+  }));
+
+  intentar(()=> new Chart(document.getElementById('chartClientes'), {
+    type:'doughnut',
+    data:{
+      labels: D.clientes.map(c=>c.Cliente),
+      datasets:[{data: D.clientes.map(c=>c.Ventas), backgroundColor:['#e2a63a','#4fb3a6','#8b8fd8','#d9705f'], borderColor:'#181c24', borderWidth:2}]
+    },
+    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'right', labels:{boxWidth:10, font:{size:11.5}}}}}
+  }));
+
+  intentar(()=> new Chart(document.getElementById('chartPago'), {
+    type:'doughnut',
+    data:{
+      labels: D.pago.map(p=>p.Pago),
+      datasets:[{data: D.pago.map(p=>p.Ventas), backgroundColor:['#4fb3a6','#e2a63a'], borderColor:'#181c24', borderWidth:2}]
+    },
+    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'right', labels:{boxWidth:10}}}}
+  }));
+}
+pintarGraficos();
+</script>
+</body>
+</html>
